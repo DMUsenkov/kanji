@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TelegramBotDataStubs.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">TelegramShopManager</a> &gt; <a href="index.source.html" class="el_package">ru.hse</a> &gt; <span class="el_source">TelegramBotDataStubs.java</span></div><h1>TelegramBotDataStubs.java</h1><pre class="source lang-java linenums">package ru.hse;
+
+import org.telegram.telegrambots.meta.api.objects.Chat;
+import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.User;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+<span class="fc" id="L12">public class TelegramBotDataStubs {</span>
+
+<span class="fc" id="L14">    private int fakeUpdateId = 0;</span>
+<span class="fc" id="L15">    private int fakeMessageId = 0;</span>
+<span class="fc" id="L16">    private Map&lt;Long, User&gt; fakeUsers = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L17">    private Map&lt;Long, Chat&gt; fakeChats = new HashMap&lt;&gt;();</span>
+
+    public Update formUpdateRequest(String s, long i) {
+<span class="fc" id="L20">        return new Update(fakeUpdateId++,</span>
+<span class="fc" id="L21">                formMessage(s, i), null,null, null,</span>
+                null, null,null, null,
+                null, null,null, null,
+                null, null);
+    }
+
+    private Message formMessage(String s, long i) {
+<span class="fc" id="L28">        return new Message(fakeMessageId++,</span>
+<span class="fc" id="L29">                (int)i,</span>
+<span class="fc" id="L30">                formFakeUser(i),</span>
+<span class="fc" id="L31">                (int)new Date().getTime(),</span>
+<span class="fc" id="L32">                formFakeChat(i),null,null,null,s,</span>
+                null, null, null,null,
+                null, null, null, null,
+                null, null, null, null,
+                null, null, null, null,
+                null, null, null, null,
+                null, null, null, null,
+                null, null, null, null,
+                null, null, null, null,
+                null, null, null, null,
+                null, null, null, null,
+                null, null, null, null,
+                null, null, null, null,
+                null, null, null, null,
+                null, null, null, null,
+                null, null, null, null,null,null);
+    }
+    private User formFakeUser(long i){
+<span class="fc" id="L50">        User u = fakeUsers.get(i);</span>
+<span class="fc bfc" id="L51" title="All 2 branches covered.">        if(u == null){</span>
+<span class="fc" id="L52">            u = new User(i, &quot;USER_&quot;+i, false);</span>
+<span class="fc" id="L53">            fakeUsers.put(i, u);</span>
+        }
+<span class="fc" id="L55">        return u;</span>
+    }
+    private Chat formFakeChat(long i){
+<span class="fc" id="L58">        Chat u = fakeChats.get(i);</span>
+<span class="fc bfc" id="L59" title="All 2 branches covered.">        if(u == null){</span>
+<span class="fc" id="L60">            u = new Chat(i, &quot;USER_&quot;+i);</span>
+<span class="fc" id="L61">            fakeChats.put(i, u);</span>
+        }
+<span class="fc" id="L63">        return u;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

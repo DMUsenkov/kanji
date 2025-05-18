@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">TelegramShopManager</a> &gt; <a href="index.source.html" class="el_package">ru.hse.service</a> &gt; <span class="el_source">UserService.java</span></div><h1>UserService.java</h1><pre class="source lang-java linenums">package ru.hse.service;
+
+import ru.hse.model.Product;
+import ru.hse.model.SessionState;
+import ru.hse.model.User;
+import ru.hse.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.math.BigDecimal;
+import java.util.HashSet;
+
+/**
+ * Service class for user operations
+ */
+public class UserService {
+    private final UserRepository userRepository;
+    
+<span class="fc" id="L19">    public UserService(UserRepository userRepository) {</span>
+<span class="fc" id="L20">        this.userRepository = userRepository;</span>
+<span class="fc" id="L21">    }</span>
+    
+    /**
+     * Get a user by their chat ID
+     * 
+     * @param chatId The Telegram chat ID
+     * @return The user or null if not found
+     */
+    public User getUserByChatId(Long chatId) {
+<span class="fc" id="L30">        return userRepository.findByChatId(chatId);</span>
+    }
+    
+    /**
+     * Create a new user
+     * 
+     * @param chatId The Telegram chat ID
+     * @param name The user's name
+     * @return The newly created user
+     */
+    public User createUser(Long chatId, String name) {
+<span class="fc" id="L41">        User existingUser = userRepository.findByChatId(chatId);</span>
+        
+<span class="fc bfc" id="L43" title="All 2 branches covered.">        if (existingUser != null) {</span>
+<span class="fc" id="L44">            System.out.println(&quot;User already exists with chatId: &quot;+ chatId);</span>
+<span class="fc" id="L45">            return existingUser;</span>
+        }
+        
+<span class="fc" id="L48">        User newUser = new User(userRepository.nextId(), chatId, name, new HashSet&lt;&gt;());</span>
+        
+<span class="fc" id="L50">        userRepository.save(newUser);</span>
+<span class="fc" id="L51">        System.out.println(&quot;Created new user: &quot;+newUser);</span>
+        
+<span class="fc" id="L53">        return newUser;</span>
+    }
+    
+    /**
+     * Add funds to a user's balance
+     * 
+     * @param user The user
+     * @param amount The amount to add
+     */
+    public void addFunds(User user, BigDecimal amount) {
+<span class="nc" id="L63">        user.addToBalance(amount);</span>
+<span class="nc" id="L64">        userRepository.update(user);</span>
+<span class="nc" id="L65">        System.out.println(&quot;Added &quot;+amount+&quot; funds to user &quot;+user.getId()+&quot;, new balance: &quot;+user.getBalance());</span>
+<span class="nc" id="L66">    }</span>
+    
+    /**
+     * Deduct funds from a user's balance
+     * 
+     * @param user The user
+     * @param amount The amount to deduct
+     * @return true if successful, false if insufficient funds
+     */
+    public boolean deductFunds(User user, BigDecimal amount) {
+<span class="nc bnc" id="L76" title="All 2 branches missed.">        if (user.getBalance().compareTo(amount) &lt; 0) {</span>
+<span class="nc" id="L77">            System.out.println(&quot;Insufficient funds for user &quot;+user.getId()+&quot;: has &quot;+user.getBalance()+&quot;, needs &quot;+amount);</span>
+<span class="nc" id="L78">            return false;</span>
+        }
+        
+<span class="nc" id="L81">        user.subtractFromBalance(amount);</span>
+<span class="nc" id="L82">        userRepository.update(user);</span>
+<span class="nc" id="L83">        System.out.println(&quot;Deducted &quot;+amount+&quot; funds from user &quot;+user.getId()+&quot;, new balance: &quot;+user.getBalance());</span>
+<span class="nc" id="L84">        return true;</span>
+    }
+    
+    /**
+     * Add a product to the user's cart
+     * 
+     * @param user The user
+     * @param product The product to add
+     * @param quantity The quantity to add
+     */
+    public void addToCart(User user, Product product, int quantity) {
+<span class="fc" id="L95">        user.addToCart(product, quantity);</span>
+<span class="fc" id="L96">        userRepository.update(user);</span>
+<span class="fc" id="L97">        System.out.println(&quot;Added &quot;+quantity+&quot; of &quot;+product.getName()+&quot; to cart for user &quot;+user.getId());</span>
+<span class="fc" id="L98">    }</span>
+    
+    /**
+     * Clear the user's cart
+     * 
+     * @param user The user
+     */
+    public void clearCart(User user) {
+<span class="fc" id="L106">        user.clearCart();</span>
+<span class="fc" id="L107">        userRepository.update(user);</span>
+<span class="fc" id="L108">        System.out.println(&quot;Cleared cart for user &quot;+user.getId());</span>
+<span class="fc" id="L109">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

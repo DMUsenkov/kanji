@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProductService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">TelegramShopManager</a> &gt; <a href="index.source.html" class="el_package">ru.hse.service</a> &gt; <span class="el_source">ProductService.java</span></div><h1>ProductService.java</h1><pre class="source lang-java linenums">package ru.hse.service;
+
+import ru.hse.exception.InsufficientStockException;
+import ru.hse.exception.ProductNotFoundException;
+import ru.hse.model.Product;
+import ru.hse.repository.ProductRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
+
+/**
+ * Service class for product operations
+ */
+public class ProductService {
+<span class="fc" id="L16">    private static final Logger logger = LoggerFactory.getLogger(ProductService.class);</span>
+    private final ProductRepository productRepository;
+    
+<span class="fc" id="L19">    public ProductService(ProductRepository productRepository) {</span>
+<span class="fc" id="L20">        this.productRepository = productRepository;</span>
+<span class="fc" id="L21">    }</span>
+    
+    /**
+     * Get all available products
+     *
+     * @return
+     */
+    public List&lt;Product&gt; getAllProducts() {
+<span class="nc" id="L29">        return productRepository.findAll();</span>
+    }
+    
+    /**
+     * Get a product by its ID
+     * 
+     * @param id The product ID
+     * @return The product or null if not found
+     */
+    public Product getProductById(Long id) throws ProductNotFoundException {
+<span class="fc" id="L39">        Product product = productRepository.findById(id);</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">        if (product == null) {</span>
+<span class="fc" id="L41">            throw new ProductNotFoundException(&quot;Product with ID &quot; + id + &quot; not found&quot;);</span>
+        }
+<span class="fc" id="L43">        return product;</span>
+    }
+    
+    /**
+     * Check if a product has sufficient stock
+     * 
+     * @param productId The product ID
+     * @param quantity The quantity to check
+     * @return true if there's enough stock
+     * @throws ProductNotFoundException if the product doesn't exist
+     * @throws InsufficientStockException if there's not enough stock
+     */
+    public boolean hasStock(Long productId, int quantity) 
+            throws ProductNotFoundException, InsufficientStockException {
+<span class="fc" id="L57">        Product product = getProductById(productId);</span>
+        
+<span class="fc bfc" id="L59" title="All 2 branches covered.">        if (product.getQuantity() &lt; quantity) {</span>
+<span class="fc" id="L60">            throw new InsufficientStockException(</span>
+<span class="fc" id="L61">                    &quot;Not enough stock for &quot; + product.getName() + </span>
+<span class="fc" id="L62">                    &quot;. Available: &quot; + product.getQuantity() +</span>
+                    &quot;, Requested: &quot; + quantity);
+        }
+        
+<span class="fc" id="L66">        return true;</span>
+    }
+    
+    /**
+     * Update product stock
+     * 
+     * @param productId The product ID
+     * @param quantity The quantity to reduce by (negative to increase)
+     * @throws ProductNotFoundException if the product doesn't exist
+     * @throws InsufficientStockException if there's not enough stock
+     */
+    public void updateStock(Long productId, int quantity) 
+            throws ProductNotFoundException, InsufficientStockException {
+<span class="fc" id="L79">        Product product = getProductById(productId);</span>
+        
+<span class="fc bfc" id="L81" title="All 4 branches covered.">        if (quantity &gt; 0 &amp;&amp; product.getQuantity() &lt; quantity) {</span>
+<span class="fc" id="L82">            throw new InsufficientStockException(</span>
+<span class="fc" id="L83">                    &quot;Not enough stock for &quot; + product.getName() + </span>
+<span class="fc" id="L84">                    &quot;. Available: &quot; + product.getQuantity() +</span>
+                    &quot;, Requested: &quot; + quantity);
+        }
+        
+<span class="fc bfc" id="L88" title="All 2 branches covered.">        if (quantity &gt; 0) {</span>
+<span class="fc" id="L89">            product.reduceQuantity(quantity);</span>
+        } else {
+<span class="fc" id="L91">            product.increaseQuantity(-quantity);</span>
+        }
+        
+<span class="fc" id="L94">        productRepository.update(product);</span>
+<span class="fc" id="L95">        System.out.println(&quot;Updated stock for product &quot;+product.getId()+&quot;: new quantity &quot;+product.getQuantity());</span>
+<span class="fc" id="L96">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

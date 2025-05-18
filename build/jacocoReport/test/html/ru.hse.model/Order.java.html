@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Order.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">TelegramShopManager</a> &gt; <a href="index.source.html" class="el_package">ru.hse.model</a> &gt; <span class="el_source">Order.java</span></div><h1>Order.java</h1><pre class="source lang-java linenums">package ru.hse.model;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+
+/**
+ * Represents an order in the e-commerce system
+ */
+public class Order {
+<span class="fc" id="L12">    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd HH:mm:ss&quot;);</span>
+    
+    private Long id;
+    private Long userId;
+    private List&lt;CartItem&gt; items;
+    private BigDecimal total;
+    private LocalDateTime createdAt;
+    
+<span class="fc" id="L20">    public Order(Long id, Long userId, List&lt;CartItem&gt; items, BigDecimal total) {</span>
+<span class="fc" id="L21">        this.id = id;</span>
+<span class="fc" id="L22">        this.userId = userId;</span>
+<span class="fc" id="L23">        this.items = items;</span>
+<span class="fc" id="L24">        this.total = total;</span>
+<span class="fc" id="L25">        this.createdAt = LocalDateTime.now();</span>
+<span class="fc" id="L26">    }</span>
+    
+    public Long getId() {
+<span class="fc" id="L29">        return id;</span>
+    }
+    
+    public Long getUserId() {
+<span class="fc" id="L33">        return userId;</span>
+    }
+    
+    public List&lt;CartItem&gt; getItems() {
+<span class="fc" id="L37">        return items;</span>
+    }
+    
+    public BigDecimal getTotal() {
+<span class="fc" id="L41">        return total;</span>
+    }
+    
+    public LocalDateTime getCreatedAtRaw() {
+<span class="fc" id="L45">        return createdAt;</span>
+    }
+    
+    public String getCreatedAt() {
+<span class="fc" id="L49">        return createdAt.format(DATE_FORMATTER);</span>
+    }
+    
+    @Override
+    public String toString() {
+<span class="fc" id="L54">        return &quot;Order{&quot; +</span>
+                &quot;id=&quot; + id +
+                &quot;, userId=&quot; + userId +
+<span class="fc" id="L57">                &quot;, items=&quot; + items.size() +</span>
+                &quot;, total=&quot; + total +
+<span class="fc" id="L59">                &quot;, createdAt=&quot; + getCreatedAt() +</span>
+                '}';
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

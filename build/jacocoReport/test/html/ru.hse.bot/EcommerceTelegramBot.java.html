@@ -1,0 +1,422 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EcommerceTelegramBot.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">TelegramShopManager</a> &gt; <a href="index.source.html" class="el_package">ru.hse.bot</a> &gt; <span class="el_source">EcommerceTelegramBot.java</span></div><h1>EcommerceTelegramBot.java</h1><pre class="source lang-java linenums">package ru.hse.bot;
+
+import org.glassfish.grizzly.streams.StreamWriter;
+import org.telegram.telegrambots.meta.api.objects.Chat;
+import ru.hse.exception.*;
+import ru.hse.model.CartItem;
+import ru.hse.model.Order;
+import ru.hse.model.Product;
+import ru.hse.model.User;
+import ru.hse.service.CouponService;
+import ru.hse.service.OrderService;
+import ru.hse.service.ProductService;
+import ru.hse.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
+import java.io.StringWriter;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+/**
+ * The main bot class that handles all Telegram interactions
+ */
+public class EcommerceTelegramBot extends TelegramLongPollingBot {
+    private static final String HELP_TEXT_START = &quot;/start - Start the bot and create an account&quot;;
+    private static final String HELP_TEXT_ACCOUNT = &quot;/account - Check your account balance&quot;;
+    private static final String HELP_TEXT_ORDERS = &quot;/orders Show you active orders&quot;;
+    private static final String HELP_TEXT_GOODS = &quot;/products - Show all available products&quot;;
+    private static final String HELP_TEXT_COUPON = &quot;/coupon or /coupon list - Show all applied coupons\n&quot; +
+                                                    &quot;/coupon apply &lt;coupon&gt; - Apply selected coupon&quot;;
+    private static final String HELP_TEXT_CART = &quot;/cart or /cart list - Show product in current cart\n&quot; +
+            &quot;/cart add &lt;product&gt; &lt;quantity&gt; - Add selected product to cart\n&quot; +
+            &quot;/cart clear - Remove all products from you cart\n&quot; +
+            &quot;/cart checkout - Create new order with selected products from cart&quot;;
+    private static final String HELP_TEXT = &quot;Available commands:\n&quot; +
+            HELP_TEXT_START + &quot;\n&quot; +
+            &quot;/help - Show this help message\n&quot; +
+            &quot;/help &lt;command&gt; - Show the help message for corresponding command\n&quot; +
+            HELP_TEXT_ACCOUNT + &quot;\n&quot; +
+            HELP_TEXT_ORDERS + &quot;\n&quot; +
+            HELP_TEXT_GOODS+&quot;\n&quot; +
+            &quot;/coupon - Apply coupon or list all applied coupons\n&quot; +
+            &quot;/cart - Show you current cart, buy goods from store, checkout&quot;;
+    private static final String HELP_TEXT_UNKNOWN = &quot;Command not recognized. Send /help to list all available commands.&quot;;
+    private final StringWriter testWriter;
+    private final String botUsername;
+    private final UserService userService;
+    private final ProductService productService;
+    private final OrderService orderService;
+    private final CouponService couponService;
+
+    public EcommerceTelegramBot( StringWriter testWriter,
+                                String botUsername, String botToken,
+                                UserService userService,
+                                ProductService productService,
+                                OrderService orderService,
+                                CouponService couponService) {
+<span class="fc" id="L67">        super(botToken);</span>
+<span class="fc" id="L68">        this.testWriter = testWriter;</span>
+<span class="fc" id="L69">        this.botUsername = botUsername;</span>
+<span class="fc" id="L70">        this.userService = userService;</span>
+<span class="fc" id="L71">        this.productService = productService;</span>
+<span class="fc" id="L72">        this.orderService = orderService;</span>
+<span class="fc" id="L73">        this.couponService = couponService;</span>
+<span class="fc" id="L74">    }</span>
+
+    @Override
+    public String getBotUsername() {
+<span class="nc" id="L78">        return botUsername;</span>
+    }
+    public StringWriter getTestWriter(){
+<span class="nc" id="L81">        return testWriter;</span>
+    }
+
+    @Override
+    public void onUpdateReceived(Update update) {
+<span class="fc bfc" id="L86" title="All 4 branches covered.">        if (update == null || !update.getMessage().hasText()) {</span>
+<span class="fc" id="L87">            return;</span>
+        }
+
+<span class="fc" id="L90">        Message message = update.getMessage();</span>
+<span class="fc" id="L91">        Long chatId = message.getChatId();</span>
+<span class="fc" id="L92">        String text = message.getText();</span>
+<span class="fc" id="L93">        String firstName = message.getFrom().getFirstName();</span>
+        
+<span class="fc" id="L95">        System.out.println(&quot;Received message: '&quot;+text+&quot;' from user &quot;+firstName+&quot; (&quot;+chatId+&quot;)&quot;);</span>
+
+        try {
+            // Check if user exists, if not create a new account on any command
+<span class="fc" id="L99">            User user = userService.getUserByChatId(chatId);</span>
+<span class="pc bpc" id="L100" title="1 of 4 branches missed.">            if (user == null &amp;&amp; !text.startsWith(&quot;/start&quot;)) {</span>
+<span class="fc" id="L101">                sendMessage(chatId, &quot;Please use /start to create an account first.&quot;);</span>
+<span class="fc" id="L102">                return;</span>
+            }
+<span class="fc bfc" id="L104" title="All 2 branches covered.">            if (text.startsWith(&quot;/start&quot;)) {</span>
+<span class="fc" id="L105">                handleStartCommand(chatId, firstName);</span>
+<span class="fc bfc" id="L106" title="All 2 branches covered.">            } else if (text.startsWith(&quot;/help&quot;)) {</span>
+<span class="fc" id="L107">                handleHelpCommand(chatId, text);</span>
+<span class="pc bpc" id="L108" title="1 of 2 branches missed.">            }  else if (text.startsWith(&quot;/account&quot;)) {</span>
+<span class="nc" id="L109">                handleAccountCommand(chatId);</span>
+<span class="fc bfc" id="L110" title="All 2 branches covered.">            } else if (text.startsWith(&quot;/orders&quot;)) {</span>
+<span class="fc" id="L111">                handleOrdersCommand(chatId);</span>
+<span class="pc bpc" id="L112" title="1 of 2 branches missed.">            } else if (text.startsWith(&quot;/products&quot;)) {</span>
+<span class="nc" id="L113">                handleGoodsCommand(chatId);</span>
+<span class="fc bfc" id="L114" title="All 2 branches covered.">            } else if (text.startsWith(&quot;/coupon&quot;)) {</span>
+<span class="fc" id="L115">                handleCouponCommand(chatId, text);</span>
+<span class="pc bpc" id="L116" title="1 of 2 branches missed.">            } else if (text.startsWith(&quot;/cart&quot;)) {</span>
+<span class="fc" id="L117">                handleCartCommand(chatId, text);</span>
+            } else {
+<span class="nc" id="L119">                sendMessage(chatId, &quot;Unknown command. Type /help to see available commands.&quot;);</span>
+            }
+<span class="nc" id="L121">        } catch (Exception e) {</span>
+<span class="nc" id="L122">            System.err.println(&quot;Error processing message&quot;);</span>
+<span class="nc" id="L123">            e.printStackTrace();</span>
+<span class="nc" id="L124">            sendMessage(chatId, &quot;An error occurred: &quot; + e.getMessage());</span>
+<span class="fc" id="L125">        }</span>
+<span class="fc" id="L126">    }</span>
+
+    private void handleStartCommand(Long chatId, String firstName) {
+<span class="fc" id="L129">        User existingUser = userService.getUserByChatId(chatId);</span>
+        
+<span class="pc bpc" id="L131" title="1 of 2 branches missed.">        if (existingUser != null) {</span>
+<span class="fc" id="L132">            sendMessage(chatId, &quot;Welcome back, &quot; + firstName + &quot;! Your account is already set up.&quot;);</span>
+        } else {
+<span class="nc" id="L134">            User newUser = userService.createUser(chatId, firstName);</span>
+<span class="nc" id="L135">            sendMessage(chatId, &quot;Welcome, &quot; + firstName + &quot;! Your account has been created with an initial balance of $&quot; + </span>
+<span class="nc" id="L136">                    newUser.getBalance() + &quot;. Type /help to see available commands.&quot;);</span>
+        }
+<span class="fc" id="L138">    }</span>
+
+    private void handleHelpCommand(Long chatId, String text) {
+<span class="fc" id="L141">        text = text.substring(5).trim();</span>
+<span class="pc bpc" id="L142" title="1 of 4 branches missed.">        if(text.isEmpty() || text.equals(&quot;help&quot;))</span>
+<span class="fc" id="L143">            sendMessage(chatId, HELP_TEXT);</span>
+        else
+<span class="fc bfc" id="L145" title="All 7 branches covered.">            switch (text){</span>
+                case &quot;start&quot;:
+<span class="fc" id="L147">                    sendMessage(chatId, HELP_TEXT_START);</span>
+<span class="fc" id="L148">                    break;</span>
+                case &quot;account&quot;:
+<span class="fc" id="L150">                    sendMessage(chatId, HELP_TEXT_ACCOUNT);</span>
+<span class="fc" id="L151">                    break;</span>
+                case &quot;orders&quot;:
+<span class="fc" id="L153">                    sendMessage(chatId, HELP_TEXT_ORDERS);</span>
+<span class="fc" id="L154">                    break;</span>
+                case &quot;products&quot;:
+<span class="fc" id="L156">                    sendMessage(chatId, HELP_TEXT_GOODS);</span>
+<span class="fc" id="L157">                    break;</span>
+                case &quot;coupon&quot;:
+<span class="fc" id="L159">                    sendMessage(chatId, HELP_TEXT_COUPON);</span>
+<span class="fc" id="L160">                    break;</span>
+                case &quot;cart&quot;:
+<span class="fc" id="L162">                    sendMessage(chatId, HELP_TEXT_CART);</span>
+                    break;
+            }
+<span class="fc" id="L165">        sendMessage(chatId, HELP_TEXT_UNKNOWN);</span>
+<span class="fc" id="L166">    }</span>
+
+    private void handleAccountCommand(Long chatId) {
+<span class="nc" id="L169">        User user = userService.getUserByChatId(chatId);</span>
+<span class="nc" id="L170">        sendMessage(chatId, &quot;Your current balance: $&quot; + user.getBalance() +</span>
+                &quot;\n\nUse /coupon apply &lt;code&gt; to add funds to your balance.&quot;);
+<span class="nc" id="L172">    }</span>
+
+    private void handleOrdersCommand(Long chatId) {
+<span class="fc" id="L175">        User user = userService.getUserByChatId(chatId);</span>
+<span class="fc" id="L176">        List&lt;Order&gt; orders = orderService.getUserOrders(user);</span>
+
+<span class="pc bpc" id="L178" title="1 of 2 branches missed.">        if (orders.isEmpty()) {</span>
+<span class="fc" id="L179">            sendMessage(chatId, &quot;You haven't placed any orders yet.&quot;);</span>
+<span class="fc" id="L180">            return;</span>
+        }
+
+<span class="nc" id="L183">        StringBuilder ordersMsg = new StringBuilder(&quot;Your Order History:\n\n&quot;);</span>
+
+<span class="nc bnc" id="L185" title="All 2 branches missed.">        for (Order order : orders) {</span>
+<span class="nc" id="L186">            ordersMsg.append(&quot;Order ID: &quot;).append(order.getId())</span>
+<span class="nc" id="L187">                    .append(&quot;\nDate: &quot;).append(order.getCreatedAt())</span>
+<span class="nc" id="L188">                    .append(&quot;\nTotal: $&quot;).append(order.getTotal())</span>
+<span class="nc" id="L189">                    .append(&quot;\nItems: &quot;).append(order.getItems().size())</span>
+<span class="nc" id="L190">                    .append(&quot;\n\n&quot;);</span>
+<span class="nc" id="L191">        }</span>
+
+<span class="nc" id="L193">        sendMessage(chatId, ordersMsg.toString());</span>
+<span class="nc" id="L194">    }</span>
+    private void handleGoodsCommand(Long chatId) {
+<span class="nc" id="L196">        List&lt;Product&gt; products = productService.getAllProducts();</span>
+
+<span class="nc bnc" id="L198" title="All 2 branches missed.">        if (products.isEmpty()) {</span>
+<span class="nc" id="L199">            sendMessage(chatId, &quot;No products available at the moment.&quot;);</span>
+<span class="nc" id="L200">            return;</span>
+        }
+
+<span class="nc" id="L203">        StringBuilder response = new StringBuilder(&quot;Available Products:\n\n&quot;);</span>
+
+<span class="nc bnc" id="L205" title="All 2 branches missed.">        for (Product product : products) {</span>
+<span class="nc" id="L206">            response.append(&quot;ID: &quot;).append(product.getId())</span>
+<span class="nc" id="L207">                    .append(&quot;\nName: &quot;).append(product.getName())</span>
+<span class="nc" id="L208">                    .append(&quot;\nPrice: $&quot;).append(product.getPrice())</span>
+<span class="nc" id="L209">                    .append(&quot;\nIn Stock: &quot;).append(product.getQuantity())</span>
+<span class="nc" id="L210">                    .append(&quot;\n\nTo add to cart: /cart add &quot;)</span>
+<span class="nc" id="L211">                    .append(product.getId()).append(&quot; &lt;quantity&gt;\n\n&quot;);</span>
+<span class="nc" id="L212">        }</span>
+
+<span class="nc" id="L214">        sendMessage(chatId, response.toString());</span>
+<span class="nc" id="L215">    }</span>
+
+    private void handleCouponCommand(Long chatId, String text) {
+<span class="fc" id="L218">        text = text.substring(7).trim();</span>
+<span class="fc bfc" id="L219" title="All 4 branches covered.">        if(text.isEmpty() || text.equals(&quot;list&quot;)) {</span>
+<span class="fc" id="L220">            handleCouponListCommand(chatId);</span>
+<span class="fc" id="L221">            return;</span>
+        }
+<span class="pc bpc" id="L223" title="1 of 2 branches missed.">        if(text.startsWith(&quot;apply&quot;)){</span>
+<span class="fc" id="L224">            handleCouponApplyCommand(chatId, text);</span>
+<span class="fc" id="L225">            return;</span>
+        }
+<span class="nc" id="L227">        sendMessage(chatId, HELP_TEXT_UNKNOWN);</span>
+<span class="nc" id="L228">    }</span>
+    private void handleCouponListCommand(Long chatId){
+<span class="fc" id="L230">        StringBuilder couponMsg = new StringBuilder(&quot;Already applied coupons: \n&quot;);</span>
+<span class="fc" id="L231">        User user = userService.getUserByChatId(chatId);</span>
+<span class="fc bfc" id="L232" title="All 2 branches covered.">        for(String s: user.getCouponsUsed()){</span>
+<span class="fc" id="L233">            couponMsg.append(&quot;\n&quot;);</span>
+<span class="fc" id="L234">            couponMsg.append(s);</span>
+<span class="fc" id="L235">        }</span>
+<span class="fc" id="L236">        sendMessage(chatId, couponMsg.toString());</span>
+<span class="fc" id="L237">    }</span>
+
+    private void handleCouponApplyCommand(Long chatId, String text){
+<span class="fc" id="L240">        User user = userService.getUserByChatId(chatId);</span>
+<span class="fc" id="L241">        text = text.substring(5).trim();</span>
+<span class="fc" id="L242">        StringBuilder couponMsg = new StringBuilder(&quot;Coupon &quot;);</span>
+<span class="fc" id="L243">        couponMsg.append(text);</span>
+        try {
+<span class="fc" id="L245">            couponService.applyCoupon(user, text);</span>
+<span class="fc" id="L246">            couponMsg.append(&quot; was successfully applied\n&quot;);</span>
+<span class="fc" id="L247">            couponMsg.append(&quot;\n\nYour balance: $&quot;).append(user.getBalance());</span>
+<span class="fc" id="L248">            sendMessage(chatId, couponMsg.toString());</span>
+<span class="fc" id="L249">        }catch(CouponNotFoundException cnfe){</span>
+<span class="fc" id="L250">            couponMsg.append(&quot; is not found.&quot;);</span>
+<span class="fc" id="L251">            sendMessage(chatId, couponMsg.toString());</span>
+<span class="fc" id="L252">        } catch (CouponWasUsedException e) {</span>
+<span class="fc" id="L253">            couponMsg.append(&quot; was already applied.&quot;);</span>
+<span class="fc" id="L254">            sendMessage(chatId, couponMsg.toString());</span>
+<span class="fc" id="L255">        }</span>
+<span class="fc" id="L256">    }</span>
+    private void handleCartCommand(Long chatId, String text) {
+<span class="fc" id="L258">        text = text.substring(5).trim();</span>
+<span class="fc bfc" id="L259" title="All 4 branches covered.">        if(text.isEmpty() || text.equals(&quot;list&quot;)){</span>
+<span class="fc" id="L260">            handleCartInfoCommand(chatId);</span>
+<span class="fc" id="L261">            return;</span>
+        }
+<span class="fc bfc" id="L263" title="All 2 branches covered.">        if(text.equals(&quot;clear&quot;)){</span>
+<span class="fc" id="L264">            handleClearCartCommand(chatId);</span>
+<span class="fc" id="L265">            return;</span>
+        }
+<span class="fc bfc" id="L267" title="All 2 branches covered.">        if(text.startsWith(&quot;add&quot;)){</span>
+<span class="fc" id="L268">            handleAddToCartCommand(chatId, text);</span>
+<span class="fc" id="L269">            return;</span>
+        }
+<span class="pc bpc" id="L271" title="1 of 2 branches missed.">        if(text.equals(&quot;checkout&quot;)){</span>
+<span class="fc" id="L272">            handleCheckoutCommand(chatId);</span>
+<span class="fc" id="L273">            return;</span>
+        }
+<span class="nc" id="L275">        sendMessage(chatId, HELP_TEXT_UNKNOWN);</span>
+<span class="nc" id="L276">    }</span>
+    private void handleCartInfoCommand(Long chatId) {
+<span class="fc" id="L278">        User user = userService.getUserByChatId(chatId);</span>
+<span class="fc" id="L279">        List&lt;CartItem&gt; cart = user.getCart();</span>
+
+<span class="fc bfc" id="L281" title="All 2 branches covered.">        if (cart.isEmpty()) {</span>
+<span class="fc" id="L282">            sendMessage(chatId, &quot;Your shopping cart is empty. Use /products to browse available products.&quot;);</span>
+<span class="fc" id="L283">            return;</span>
+        }
+
+<span class="fc" id="L286">        BigDecimal total = BigDecimal.ZERO;</span>
+<span class="fc" id="L287">        StringBuilder cartMsg = new StringBuilder(&quot;Your Shopping Cart:\n\n&quot;);</span>
+
+<span class="fc bfc" id="L289" title="All 2 branches covered.">        for (CartItem item : cart) {</span>
+<span class="fc" id="L290">            Product product = item.getProduct();</span>
+<span class="fc" id="L291">            int quantity = item.getQuantity();</span>
+<span class="fc" id="L292">            BigDecimal itemTotal = product.getPrice().multiply(BigDecimal.valueOf(quantity));</span>
+
+<span class="fc" id="L294">            cartMsg.append(quantity).append(&quot;x &quot;).append(product.getName())</span>
+<span class="fc" id="L295">                    .append(&quot; - $&quot;).append(product.getPrice()).append(&quot; each&quot;)</span>
+<span class="fc" id="L296">                    .append(&quot; = $&quot;).append(itemTotal).append(&quot;\n&quot;);</span>
+
+<span class="fc" id="L298">            total = total.add(itemTotal);</span>
+<span class="fc" id="L299">        }</span>
+
+<span class="fc" id="L301">        cartMsg.append(&quot;\nTotal: $&quot;).append(total);</span>
+<span class="fc" id="L302">        cartMsg.append(&quot;\n\nYour balance: $&quot;).append(user.getBalance());</span>
+<span class="fc" id="L303">        cartMsg.append(&quot;\n\nUse /cart checkout to complete your purchase or /cart clear to empty your cart.&quot;);</span>
+
+<span class="fc" id="L305">        sendMessage(chatId, cartMsg.toString());</span>
+<span class="fc" id="L306">    }</span>
+
+    private void handleClearCartCommand(Long chatId) {
+<span class="fc" id="L309">        User user = userService.getUserByChatId(chatId);</span>
+<span class="fc" id="L310">        userService.clearCart(user);</span>
+<span class="fc" id="L311">        sendMessage(chatId, &quot;Your shopping cart has been cleared.&quot;);</span>
+<span class="fc" id="L312">    }</span>
+    private void handleAddToCartCommand(Long chatId, String text) {
+<span class="fc" id="L314">        String[] parts = text.split(&quot;\\s+&quot;);</span>
+
+<span class="fc bfc" id="L316" title="All 2 branches covered.">        if (parts.length &lt; 3) {</span>
+<span class="fc" id="L317">            sendMessage(chatId, &quot;Invalid command format. Use: /cart add &lt;product_id&gt; &lt;quantity&gt;&quot;);</span>
+<span class="fc" id="L318">            return;</span>
+        }
+
+        try {
+<span class="fc" id="L322">            Long productId = Long.parseLong(parts[1]);</span>
+<span class="fc" id="L323">            int quantity = Integer.parseInt(parts[2]);</span>
+
+<span class="fc bfc" id="L325" title="All 2 branches covered.">            if (quantity &lt;= 0) {</span>
+<span class="fc" id="L326">                sendMessage(chatId, &quot;Quantity must be greater than zero.&quot;);</span>
+<span class="fc" id="L327">                return;</span>
+            }
+
+<span class="fc" id="L330">            User user = userService.getUserByChatId(chatId);</span>
+<span class="fc" id="L331">            Product product = productService.getProductById(productId);</span>
+
+<span class="fc bfc" id="L333" title="All 2 branches covered.">            if (product.getQuantity() &lt; quantity) {</span>
+<span class="fc" id="L334">                sendMessage(chatId, &quot;Not enough stock available. Current stock: &quot; + product.getQuantity());</span>
+<span class="fc" id="L335">                return;</span>
+            }
+<span class="fc" id="L337">            double balance = user.getBalance().doubleValue();</span>
+<span class="fc" id="L338">            balance -= product.getPrice().doubleValue() * quantity;</span>
+<span class="fc" id="L339">            balance -= user.getCartTotal().doubleValue();</span>
+<span class="pc bpc" id="L340" title="1 of 2 branches missed.">            if(balance &lt; 0) {</span>
+<span class="nc" id="L341">                sendMessage(chatId, &quot;Insufficient balance: &quot;+</span>
+                        &quot;\nUse /coupon apply &lt;code&gt; to add funds to your balance.&quot; +
+<span class="nc" id="L343">                        &quot;\n Current balance &quot; + user.getBalance()+&quot;\n&quot;+&quot; Current cart cost: &quot;+user.getCartTotal());</span>
+<span class="nc" id="L344">                return;</span>
+            }
+
+<span class="fc" id="L347">            userService.addToCart(user, product, quantity);</span>
+
+<span class="fc" id="L349">            sendMessage(chatId, quantity + &quot;x &quot; + product.getName() + &quot; added to your cart.\n&quot; +</span>
+                    &quot;Use /cart to view your cart or /checkout to complete your purchase.&quot;);
+
+<span class="nc" id="L352">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L353">            sendMessage(chatId, &quot;Invalid product ID or quantity. Please use numbers only.&quot;);</span>
+<span class="nc" id="L354">        } catch (ProductNotFoundException e) {</span>
+<span class="nc" id="L355">            sendMessage(chatId, e.getMessage());</span>
+<span class="pc" id="L356">        }</span>
+<span class="fc" id="L357">    }</span>
+
+    private void handleCheckoutCommand(Long chatId) {
+<span class="fc" id="L360">        User user = userService.getUserByChatId(chatId);</span>
+        
+<span class="pc bpc" id="L362" title="1 of 2 branches missed.">        if (user.getCart().isEmpty()) {</span>
+<span class="nc" id="L363">            sendMessage(chatId, &quot;Your shopping cart is empty. Use /products to browse available products.&quot;);</span>
+<span class="nc" id="L364">            return;</span>
+        }
+        
+        try {
+<span class="fc" id="L368">            Order order = orderService.createOrder(user);</span>
+            
+<span class="fc" id="L370">            StringBuilder orderMsg = new StringBuilder(&quot;Order placed successfully!\n\n&quot;);</span>
+<span class="fc" id="L371">            orderMsg.append(&quot;Order ID: &quot;).append(order.getId()).append(&quot;\n&quot;);</span>
+<span class="fc" id="L372">            orderMsg.append(&quot;Date: &quot;).append(order.getCreatedAt()).append(&quot;\n\n&quot;);</span>
+<span class="fc" id="L373">            orderMsg.append(&quot;Items:\n&quot;);</span>
+            
+<span class="fc bfc" id="L375" title="All 2 branches covered.">            for (CartItem item : order.getItems()) {</span>
+<span class="fc" id="L376">                orderMsg.append(&quot;- &quot;).append(item.getQuantity()).append(&quot;x &quot;)</span>
+<span class="fc" id="L377">                       .append(item.getProduct().getName())</span>
+<span class="fc" id="L378">                       .append(&quot; ($&quot;).append(item.getProduct().getPrice()).append(&quot; each)\n&quot;);</span>
+<span class="fc" id="L379">            }</span>
+            
+<span class="fc" id="L381">            orderMsg.append(&quot;\nTotal: $&quot;).append(order.getTotal());</span>
+<span class="fc" id="L382">            orderMsg.append(&quot;\nRemaining balance: $&quot;).append(user.getBalance());</span>
+<span class="fc" id="L383">            orderMsg.append(&quot;\n\nThank you for your purchase!&quot;);</span>
+            
+<span class="fc" id="L385">            sendMessage(chatId, orderMsg.toString());</span>
+            
+<span class="nc" id="L387">        } catch (InsufficientBalanceException e) {</span>
+<span class="nc" id="L388">            sendMessage(chatId, &quot;Insufficient balance: &quot; + e.getMessage() + </span>
+                    &quot;\nUse /coupon apply &lt;code&gt; to add funds to your balance.&quot;);
+<span class="nc" id="L390">        } catch (InsufficientStockException e) {</span>
+<span class="nc" id="L391">            sendMessage(chatId, &quot;Insufficient stock: &quot; + e.getMessage() + </span>
+                    &quot;\nPlease update your cart with available quantities.&quot;);
+<span class="nc" id="L393">        } catch (Exception e) {</span>
+<span class="nc" id="L394">            sendMessage(chatId, &quot;Error processing your order: &quot; + e.getMessage());</span>
+<span class="pc" id="L395">        }</span>
+<span class="fc" id="L396">    }</span>
+
+    public void sendMessage(Long chatId, String text) {
+<span class="pc bpc" id="L399" title="1 of 2 branches missed.">        if(testWriter!=null)</span>
+        {
+<span class="fc" id="L401">            testWriter.append(&quot;to &quot;);</span>
+<span class="fc" id="L402">            testWriter.append(Long.toString(chatId));</span>
+<span class="fc" id="L403">            testWriter.append(&quot;: &quot;);</span>
+<span class="fc" id="L404">            testWriter.append(text);</span>
+<span class="fc" id="L405">            testWriter.append(&quot;\n&quot;);</span>
+        }else {
+<span class="nc" id="L407">            SendMessage message = new SendMessage();</span>
+<span class="nc" id="L408">            message.setChatId(chatId.toString());</span>
+<span class="nc" id="L409">            message.setText(text);</span>
+            try {
+<span class="nc" id="L411">                execute(message);</span>
+<span class="nc" id="L412">            } catch (TelegramApiException e) {</span>
+<span class="nc" id="L413">                System.err.println(&quot;Error sending message&quot;);</span>
+<span class="nc" id="L414">            }</span>
+        }
+<span class="fc" id="L416">    }</span>
+    
+    public void onClosing() {
+<span class="fc" id="L419">        System.out.println(&quot;Bot is shutting down...&quot;);</span>
+<span class="fc" id="L420">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

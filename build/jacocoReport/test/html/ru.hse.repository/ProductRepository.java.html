@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProductRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">TelegramShopManager</a> &gt; <a href="index.source.html" class="el_package">ru.hse.repository</a> &gt; <span class="el_source">ProductRepository.java</span></div><h1>ProductRepository.java</h1><pre class="source lang-java linenums">package ru.hse.repository;
+
+import ru.hse.model.Product;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
+
+/**
+ * Repository for product data
+ */
+<span class="fc" id="L16">public class ProductRepository {</span>
+<span class="fc" id="L17">    private final Map&lt;Long, Product&gt; productsById = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L18">    private final AtomicLong idCounter = new AtomicLong(1);</span>
+    
+    /**
+     * Get a product by ID
+     * 
+     * @param id The product ID
+     * @return The product or null if not found
+     */
+    public Product findById(Long id) {
+<span class="fc" id="L27">        return productsById.get(id);</span>
+    }
+    
+    /**
+     * Get all products
+     * 
+     * @return List of all products
+     */
+    public List&lt;Product&gt; findAll() {
+<span class="fc" id="L36">        return new ArrayList&lt;&gt;(productsById.values());</span>
+    }
+    
+    /**
+     * Save a new product
+     * 
+     * @param product The product to save
+     * @return The saved product
+     */
+    public Product save(Product product) {
+<span class="fc" id="L46">        productsById.put(product.getId(), product);</span>
+<span class="fc" id="L47">        System.out.println(&quot;Saved product: &quot;+product);</span>
+<span class="fc" id="L48">        return product;</span>
+    }
+    
+    /**
+     * Update an existing product
+     * 
+     * @param product The product to update
+     * @return The updated product
+     */
+    public Product update(Product product) {
+<span class="fc" id="L58">        productsById.put(product.getId(), product);</span>
+<span class="fc" id="L59">        System.out.println(&quot;Updated product: &quot;+product);</span>
+<span class="fc" id="L60">        return product;</span>
+    }
+    
+    /**
+     * Delete a product
+     * 
+     * @param id The product ID to delete
+     */
+    public void delete(Long id) {
+<span class="fc" id="L69">        Product product = productsById.remove(id);</span>
+<span class="pc bpc" id="L70" title="1 of 2 branches missed.">        if (product != null) {</span>
+<span class="fc" id="L71">            System.out.println(&quot;Deleted product with ID: &quot; + id);</span>
+        }
+<span class="fc" id="L73">    }</span>
+    
+    /**
+     * Generate next product ID
+     * 
+     * @return The next available ID
+     */
+    public Long nextId() {
+<span class="fc" id="L81">        return idCounter.getAndIncrement();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

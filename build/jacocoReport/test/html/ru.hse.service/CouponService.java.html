@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CouponService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">TelegramShopManager</a> &gt; <a href="index.source.html" class="el_package">ru.hse.service</a> &gt; <span class="el_source">CouponService.java</span></div><h1>CouponService.java</h1><pre class="source lang-java linenums">package ru.hse.service;
+
+import ru.hse.exception.CouponNotFoundException;
+import ru.hse.exception.CouponWasUsedException;
+import ru.hse.model.Coupon;
+import ru.hse.model.User;
+import ru.hse.repository.CouponRepository;
+import ru.hse.repository.UserRepository;
+
+import java.math.BigDecimal;
+
+/**
+ * Service class for coupon operations
+ */
+public class CouponService {
+    private final CouponRepository couponRepository;
+    private final UserRepository userRepository;
+    
+<span class="fc" id="L19">    public CouponService(CouponRepository couponRepository, UserRepository userRepository) {</span>
+<span class="fc" id="L20">        this.couponRepository = couponRepository;</span>
+<span class="fc" id="L21">        this.userRepository = userRepository;</span>
+<span class="fc" id="L22">    }</span>
+    
+    /**
+     * Apply a coupon to add funds to a user's balance
+     * 
+     * @param user The user
+     * @param couponCode The coupon code
+     * @return The amount added to the user's balance
+     * @throws CouponNotFoundException if the coupon doesn't exist or is already used
+     */
+    public BigDecimal applyCoupon(User user, String couponCode) throws CouponNotFoundException, CouponWasUsedException {
+<span class="fc" id="L33">        Coupon coupon = couponRepository.findByCode(couponCode);</span>
+        
+<span class="fc bfc" id="L35" title="All 2 branches covered.">        if (coupon == null) {</span>
+<span class="fc" id="L36">            throw new CouponNotFoundException(&quot;Coupon code &quot; + couponCode + &quot; not found&quot;);</span>
+        }
+        
+<span class="fc bfc" id="L39" title="All 2 branches covered.">        if (user.checkCouponUsed(coupon)) {</span>
+<span class="fc" id="L40">            throw new CouponWasUsedException(&quot;Coupon code &quot; + couponCode + &quot; has already been used&quot;);</span>
+        }
+        
+        // Mark coupon as used
+<span class="fc" id="L44">        user.setCouponUsed(coupon, true);</span>
+<span class="fc" id="L45">        couponRepository.update(coupon);</span>
+        
+        // Add amount to user balance
+<span class="fc" id="L48">        BigDecimal amount = coupon.getAmount();</span>
+<span class="fc" id="L49">        user.addToBalance(amount);</span>
+<span class="fc" id="L50">        userRepository.update(user);</span>
+        
+<span class="fc" id="L52">        System.out.println(&quot;Applied coupon &quot;+couponCode+&quot; for user &quot;+user.getId()+&quot;, adding $&quot;+ amount+&quot; to balance&quot;);</span>
+        
+<span class="fc" id="L54">        return amount;</span>
+    }
+    
+    /**
+     * Create a new coupon
+     * 
+     * @param code The coupon code
+     * @param amount The amount to add to balance
+     * @return The created coupon
+     */
+    public Coupon createCoupon(String code, BigDecimal amount) {
+<span class="fc" id="L65">        Coupon coupon = new Coupon(code, amount);</span>
+<span class="fc" id="L66">        couponRepository.save(coupon);</span>
+        
+<span class="fc" id="L68">        System.out.println(&quot;Created new coupon: &quot; + coupon);</span>
+        
+<span class="fc" id="L70">        return coupon;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

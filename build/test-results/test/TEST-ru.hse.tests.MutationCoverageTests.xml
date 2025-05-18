@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ru.hse.tests.MutationCoverageTests" tests="29" skipped="0" failures="0" errors="0" timestamp="2025-05-18T19:23:31" hostname="Dmitriys-MacBook-Pro.local" time="0.989">
+  <properties/>
+  <testcase name="testCartSubcommands()" classname="ru.hse.tests.MutationCoverageTests" time="0.324"/>
+  <testcase name="[1] start" classname="ru.hse.tests.MutationCoverageTests" time="0.003"/>
+  <testcase name="[2] account" classname="ru.hse.tests.MutationCoverageTests" time="0.001"/>
+  <testcase name="[3] orders" classname="ru.hse.tests.MutationCoverageTests" time="0.001"/>
+  <testcase name="[4] products" classname="ru.hse.tests.MutationCoverageTests" time="0.001"/>
+  <testcase name="[5] coupon" classname="ru.hse.tests.MutationCoverageTests" time="0.001"/>
+  <testcase name="[6] cart" classname="ru.hse.tests.MutationCoverageTests" time="0.001"/>
+  <testcase name="testCouponSubcommands()" classname="ru.hse.tests.MutationCoverageTests" time="0.004"/>
+  <testcase name="testModelValidation()" classname="ru.hse.tests.MutationCoverageTests" time="0.002"/>
+  <testcase name="testProductStockManagement()" classname="ru.hse.tests.MutationCoverageTests" time="0.003"/>
+  <testcase name="testMathOperations()" classname="ru.hse.tests.MutationCoverageTests" time="0.001"/>
+  <testcase name="testJsonUtil()" classname="ru.hse.tests.MutationCoverageTests" time="0.028"/>
+  <testcase name="testAddToCart_IncreaseQuantityForExistingProduct()" classname="ru.hse.tests.MutationCoverageTests" time="0.001"/>
+  <testcase name="testVoidMethodCallsInBot()" classname="ru.hse.tests.MutationCoverageTests" time="0.576"/>
+  <testcase name="testCouponApplication()" classname="ru.hse.tests.MutationCoverageTests" time="0.003"/>
+  <testcase name="testUpdateCartItemQuantity()" classname="ru.hse.tests.MutationCoverageTests" time="0.002"/>
+  <testcase name="testHelpCommand_WithUnknownParameter()" classname="ru.hse.tests.MutationCoverageTests" time="0.001"/>
+  <testcase name="testCartOperationsWithBoundaries()" classname="ru.hse.tests.MutationCoverageTests" time="0.002"/>
+  <testcase name="testComplexConditionals()" classname="ru.hse.tests.MutationCoverageTests" time="0.0"/>
+  <testcase name="testHelpCommandHandling()" classname="ru.hse.tests.MutationCoverageTests" time="0.0"/>
+  <testcase name="testToStringMethods()" classname="ru.hse.tests.MutationCoverageTests" time="0.0"/>
+  <testcase name="testBoundaryConditionsInAddToCart()" classname="ru.hse.tests.MutationCoverageTests" time="0.001"/>
+  <testcase name="testRepositoryOperations()" classname="ru.hse.tests.MutationCoverageTests" time="0.001"/>
+  <testcase name="testOrderCreation()" classname="ru.hse.tests.MutationCoverageTests" time="0.001"/>
+  <testcase name="testVoidMethodCalls()" classname="ru.hse.tests.MutationCoverageTests" time="0.002"/>
+  <testcase name="testCartTotalCalculation()" classname="ru.hse.tests.MutationCoverageTests" time="0.001"/>
+  <testcase name="testMathMutationsInCartItem()" classname="ru.hse.tests.MutationCoverageTests" time="0.001"/>
+  <testcase name="testCreateUser_AlreadyExists()" classname="ru.hse.tests.MutationCoverageTests" time="0.001"/>
+  <testcase name="testBotCommandHandling_EdgeCases()" classname="ru.hse.tests.MutationCoverageTests" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[SLF4J: No SLF4J providers were found.
+SLF4J: Defaulting to no-operation (NOP) logger implementation
+SLF4J: See https://www.slf4j.org/codes.html#noProviders for further details.
+Error deserializing JSON to object
+]]></system-err>
+</testsuite>

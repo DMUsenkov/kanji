@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CouponRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">TelegramShopManager</a> &gt; <a href="index.source.html" class="el_package">ru.hse.repository</a> &gt; <span class="el_source">CouponRepository.java</span></div><h1>CouponRepository.java</h1><pre class="source lang-java linenums">package ru.hse.repository;
+
+import ru.hse.model.Coupon;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Repository for coupon data
+ */
+<span class="fc" id="L16">public class CouponRepository {</span>
+<span class="fc" id="L17">    private static final Logger logger = LoggerFactory.getLogger(CouponRepository.class);</span>
+<span class="fc" id="L18">    private final Map&lt;String, Coupon&gt; couponsByCode = new HashMap&lt;&gt;();</span>
+    
+    /**
+     * Get a coupon by code
+     * 
+     * @param code The coupon code
+     * @return The coupon or null if not found
+     */
+    public Coupon findByCode(String code) {
+<span class="fc" id="L27">        return couponsByCode.get(code.toUpperCase());</span>
+    }
+    
+    /**
+     * Get all coupons
+     * 
+     * @return List of all coupons
+     */
+    public List&lt;Coupon&gt; findAll() {
+<span class="fc" id="L36">        return new ArrayList&lt;&gt;(couponsByCode.values());</span>
+    }
+    
+    /**
+     * Save a new coupon
+     * 
+     * @param coupon The coupon to save
+     * @return The saved coupon
+     */
+    public Coupon save(Coupon coupon) {
+<span class="fc" id="L46">        couponsByCode.put(coupon.getCode().toUpperCase(), coupon);</span>
+<span class="fc" id="L47">        logger.info(&quot;Saved coupon: {}&quot;, coupon);</span>
+<span class="fc" id="L48">        return coupon;</span>
+    }
+    
+    /**
+     * Update an existing coupon
+     * 
+     * @param coupon The coupon to update
+     * @return The updated coupon
+     */
+    public Coupon update(Coupon coupon) {
+<span class="fc" id="L58">        couponsByCode.put(coupon.getCode().toUpperCase(), coupon);</span>
+<span class="fc" id="L59">        logger.debug(&quot;Updated coupon: {}&quot;, coupon);</span>
+<span class="fc" id="L60">        return coupon;</span>
+    }
+    
+    /**
+     * Delete a coupon
+     * 
+     * @param code The coupon code to delete
+     */
+    public void delete(String code) {
+<span class="fc" id="L69">        Coupon coupon = couponsByCode.remove(code.toUpperCase());</span>
+<span class="pc bpc" id="L70" title="1 of 2 branches missed.">        if (coupon != null) {</span>
+<span class="fc" id="L71">            logger.info(&quot;Deleted coupon with code: {}&quot;, code);</span>
+        }
+<span class="fc" id="L73">    }</span>
+    
+    /**
+     * Add a new coupon with the specified code and amount
+     * 
+     * @param code The coupon code
+     * @param amount The amount to add to balance
+     * @return The created coupon
+     */
+    public Coupon addCoupon(String code, BigDecimal amount) {
+<span class="fc" id="L83">        Coupon coupon = new Coupon(code, amount);</span>
+<span class="fc" id="L84">        return save(coupon);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
