@@ -1,0 +1,76 @@
+plugins {
+    id 'java'
+    id 'idea'
+    id 'info.solidsoft.pitest' version '1.15.0'
+    id 'com.github.johnrengelman.shadow' version "7.1.2" //use this for fatjar
+}
+System.setProperty("file.encoding", "UTF-8")
+System.setProperty("console.encoding", "UTF-8")
+
+apply plugin: 'java'
+apply plugin: "jacoco"
+
+group = 'ru.hse'
+version = '1.0-SNAPSHOT'
+
+compileJava.options.encoding = 'UTF-8'
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+tasks.withType(Test).configureEach {
+    jvmArgs '-Dfile.encoding=UTF-8'
+}
+repositories {
+    mavenCentral()
+}
+
+jacoco {
+    toolVersion = "0.8.11"
+    reportsDirectory = layout.buildDirectory.dir('jacocoReport')
+}
+
+
+dependencies {
+    implementation group: 'org.telegram', name: 'telegrambots', version: '6.5.0'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.14.2'
+    implementation group: 'com.alibaba', name: 'fastjson', version: '2.0.48'
+
+    testImplementation(platform('org.junit:junit-bom:5.12.2'))
+    testImplementation('org.junit.jupiter:junit-jupiter')
+    testImplementation('org.mockito:mockito-core:3.5.13')
+    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
+
+    testImplementation group: 'org.telegram', name: 'telegrambots', version: '6.5.0'
+}
+
+tasks.withType(Jar.class).configureEach{
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+jar {
+    metadataCharset('UTF-8')
+    manifest {
+        attributes(
+                'Main-Class': 'ru.hse.ConsoleBotTest'
+        )
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
+
+pitest {
+    targetClasses = ['ru.hse.bot.*']
+    targetTests = ['ru.hse.tests.*']
+    testSourceSets = [sourceSets.test]
+    mainSourceSets = [sourceSets.main]
+    //adds dependency to org.pitest:pitest-junit5-plugin and sets "testPlugin" to "junit5"
+    junit5PluginVersion = '1.2.0'
+    pitestVersion = '1.15.0'
+    outputFormats = ['XML', 'HTML']
+    threads = 4
+    mutationThreshold.set(95)
+}
+test.finalizedBy jacocoTestReport
